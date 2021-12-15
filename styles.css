@@ -1,0 +1,46 @@
+/***** MUST BE IN THE SAME DIRECTORY *****/
+/*title: "Untitled"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+    toc_depth: 2
+    css: styles.css*/
+    
+/* Whole document: */
+ 
+body{
+    font-family: "Times New Roman";
+    font-size: 14pt;
+
+}
+/* Headers */
+h1{
+    font-family: "Times New Roman";
+    font-size: 24pt;
+}
+h2{
+    font-family: "Times New Roman";
+    font-size: 20pt;
+}
+h3,h4{
+    font-family: "Times New Roman";
+    font-size: 18pt;
+}
+h5,h6{
+    font-family: "Times New Roman";
+    font-size: 16pt;
+}
+/* 
+pre {
+  font-family:"Courier New";
+  font-size: 12px;
+}
+*/ 
+code{
+  font-family:"Courier New";
+  font-size: 16px;
+  color: blue;
+}

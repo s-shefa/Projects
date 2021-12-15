@@ -1,0 +1,293 @@
+---
+title: "Direct-Mail Fundraising"
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: yes
+    toc_depth: 3
+    css: styles.css
+  word_document:
+    toc: yes
+    toc_depth: '3'
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+# Objective
+The objective is to develop a predictive model for national veterans’ organization. The model is to improve the cost effectiveness of their direct marketing campaign. This will predict which of their donors should receive a mail campaign letter.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r, include=FALSE, message=FALSE}
+library(readr)
+library(caret)
+library(tidyverse)
+library(GGally)
+library(car)
+library(stats)
+library(class)
+```
+# Data Source
+The data is provided by the national veterans’ organization. It contains 3,000 records with approximately 50% donors and 50% non-donors.
+Different distributions performed on records can create imbalance that can affect the outcome. To avoid this weighted sampling was used in our data. This method improves accuracy compared to choosing a random sample.
+
+# Content Description
+```{r, results='asis', echo=FALSE}
+Variable = c(
+  "zip",
+  "homeowner",
+  "num_child",
+  "income",
+  "female",
+  "wealth",
+  "home_value",
+  "med_fam_inc",
+  "avg_fam_inc",
+  "pct_lt15k",
+  "num_prom",
+  "lifetime_gifts",
+  "largest_gift",
+  "last_gift",
+  "months_since_donate",
+  "time_lag",
+  "avg_gift",
+  "target"
+)
+Description = c(
+  "Zip code group (zip codes were grouped into five groups",
+  "Yes = homeowner, No = not a homeowner",
+  "Number of children",
+  "Household income",
+  "No = male, Yes = female",
+  "Wealth rating uses median family income and population statistics from each area toindex relative wealth within each state. The segments are denoted 0 to 9, with 9 being the highest",
+"Average home value in potential donor’s neighborhood in hundreds of dollars",
+"Median family income in potential donor’s neighborhood in hundreds of dollars",
+"Average family income in potential donor’s neighborhood in hundreds",
+"Percent earning less than $15K in potential donor’s neighborhood",
+"Lifetime number of promotions received to date",
+"Dollar amount of lifetime gifts to date",
+"Dollar amount of largest gift to date",
+"Dollar amount of most recent gift",
+"N-umber of months from last donation to +-+July 2018",
+"Number of months between first and second gift",
+"Average dollar amount of gifts to date",
+"Outcome variable: binary indicator for response Yes = donor, No = non-donor" )
+```
+
+```{r}
+fund_desc = data.frame(cbind(Variable, Description))
+kableExtra::kable(fund_desc)
+```
+
+```{r}
+# loading data sets
+fundraising = read_rds('~/Data Mining/Final Project/fundraising(Train).rds')
+future_fundraising = read_rds('~/Data Mining/Final Project/future_fundraising(Test).rds')
+```
+
+```{r, include=FALSE, echo=FALSE, warning=FALSE}
+rm(Description, Variable, fund_desc, inTrain)
+```
+# Variable Transformations
+```{r}
+fund_num = fundraising
+fund_num = as.data.frame(sapply(fund_num[, c(1:21)], as.numeric))
+```
+All predictors have been converted into numerical values to calculate correlation and variance values.
+```{r}
+```
+# Exploratory Data Analysis
+```{r}
+```
+## Correlation Matrix
+```{r}
+round(cor(fund_num),4)
+```
+## Pairwise Plots
+```{r, message=FALSE, warning=FALSE}
+ggpairs(fundraising[, c(10, 11, 12, 17, 20)], ggplot2::aes(colour = fundraising$target))
+```
+
+The correlation values and the pairwise plots show that home_value, med_fam_inc, avg_fam_inc, last_gift, and avg_gift are highly correlated.
+
+## Variance
+```{r, message=FALSE}
+library(colorspace)
+
+# all variables
+var = apply(fund_num, 2, var)
+round(var, 4)
+
+op = par(no.readonly = TRUE)
+
+plot(var, type = "b", col = rainbow_hcl(10), xlim = c(1, 21), pch = 16, xlab = NA, xaxt='n',ylab="Variance")
+axis(side = 1, at=1:21, las = 2, labels = names(fund_num))
+abline(h=50, col = "darkgray")
+
+par(op)
+```
+```{r}
+```
+Home_value, med_fam_inc, avg_fam_inc, and lifetime_gifts have a high variance of over 50 out of all other predictors.These indicates that the data points of these predictors are very spread out.
+
+## Checking Collinearity
+```{r, message=FALSE, warning=FALSE}
+library(usdm)
+fund_nocat = as.data.frame(fundraising[, c(6,7,9:20)])
+
+vif =  as.data.frame(usdm:: vif(fund_nocat))
+vif
+
+op = par(no.readonly = TRUE)
+plot(vif$VIF, type = "b", col = rainbow_hcl(21), xlim = c(1,14), pch = 16, ylab = "Vif",  xlab = NA, xaxt='n')
+axis(side = 1, at=1:14, las = 2, labels = names(fund_nocat))
+abline(h=5, col = "darkgray")
+abline(h=1, col = "lightgreen")
+par(op)
+```
+```{r}
+```
+
+The med_fam-inc and avg_fam-inc have a variance inflation factor of over 10. So collinearity exists in this predictors and these are highly unlikely to be significant. 
+
+Analyzing all the graphical and numerical statistics, the predictors that have significant relationships are:
+med_fam_inc, avg_fam_inc, last_gift, and avg_gift.
+Significant predictors tend to have low or no collinearity. Possible significant predictors with vif close to 1 is:
+num_child, income, wealth, largest gift, month_since_donate, and time_lag.
+
+# Partitioning Data Set
+The original data is partitioned into a training and testing data set. The training data includes 80% and the testing data includes 20% of the original data records.
+
+```{r}
+set.seed(12345)
+
+# partition data
+inTrain = caret::createDataPartition(fundraising$target, p=0.80, list = FALSE)
+inTrain = sample(3000, 2400)
+train = fundraising[inTrain,]
+test = fundraising[-inTrain,]
+```
+# Classification Models
+```{r}
+```
+## Logistic Regression
+
+```{r, message=FALSE}
+glm.fit = glm(target ~ homeowner + num_child + female + income + wealth + med_fam_inc + avg_fam_inc + pct_lt15k + lifetime_gifts + num_prom + largest_gift + last_gift + avg_gift + months_since_donate + time_lag + home_value, data =train, family = "binomial")
+summary(glm.fit)
+
+glm.probs = predict(glm.fit, test, type = "response")
+glm.preds = as.factor(ifelse(glm.probs > 0.5, "Donor", "No Donor"))
+
+car:: vif(glm.fit)
+#accuracy
+mean(glm.preds == test$target)
+```
+The model accurately predicts 43.33% of the data.
+
+Next we fit a model with the significant predictors check the accuracy.
+### Final Model
+```{r}
+glm.fit=glm(target ~ num_child + income + months_since_donate, data =train, family = "binomial")
+summary(glm.fit)
+
+glm.probs = predict(glm.fit, test, type = "response")
+glm.preds = as.factor(ifelse(glm.probs > 0.5, "Donor", "No Donor"))
+
+car:: vif(glm.fit)
+
+mean(glm.preds == test$target) 
+```
+The final model has the predictors num_child, income, and months_since_donate. The model accurately predicts 43.67% of the data which is better than the previous logistic regression model. The vifs are close to one which proves our assumption that significant predictors usually don't have high collinearity.
+
+## K-Nearest Neighbors
+```{r}
+library(class)
+
+# training matrix
+train.x = as.matrix(train[, c(6, 7, 9:20)])
+# testing matrix
+test.x = as.matrix(test[, c(6, 7, 9:20)])
+
+set.seed(12345)
+
+knn.preds = knn(train.x, test.x, train$target , k = 10)
+
+mean(knn.preds == test$target)
+```
+The KNN model with all numeric predictors has an accuracy of 50.33%.
+Using the significant variables from logistic regression, we will fit a new KNN model.
+### Final Model
+```{r}
+# training matrix
+train.x = as.matrix(train[, c(6, 7, 18)])
+# testing matrix
+test.x = as.matrix(test[, c(6, 7, 18)])
+
+set.seed(12345)
+
+knn.preds = knn(train.x, test.x, train$target , k = 10)
+
+mean(knn.preds == test$target)
+```
+The final model accurately predicts 53.67% of the data.
+
+## Support Vector Machine with Radial as the Kernel
+```{r, message=FALSE}
+library(e1071)
+
+# cross validation
+tune.rad = tune(svm, target ~ homeowner + num_child + female + income + wealth + med_fam_inc + avg_fam_inc + pct_lt15k + lifetime_gifts + num_prom + largest_gift + last_gift + avg_gift + months_since_donate + time_lag + home_value, data=train, kernel ="radial", ranges =list(cost=seq(0.01, 5, 0.333)))
+op = tune.rad$best.parameters$cost
+
+# svm radial
+svm.rad = svm(target ~ homeowner + num_child + female + income + wealth + med_fam_inc + avg_fam_inc + pct_lt15k + lifetime_gifts + num_prom + largest_gift + last_gift + avg_gift + months_since_donate + time_lag + home_value, kernel = "radial", data = train, cost = op)
+summary(svm.rad)
+
+svm.preds=predict(svm.rad, test)
+
+mean(svm.preds == test$target)
+```
+The model accurately predicts 55.67% of the data.
+Now we will check the accuracy using the significant predictors.
+### Final Model
+```{r}
+# cross validation
+tune.rad = tune(svm, target ~ num_child + income + months_since_donate, data=train, kernel ="radial", ranges =list(cost=seq(0.01, 5, 0.333)))
+op = tune.rad$best.parameters$cost
+
+# svm radial
+svm.rad = svm(target ~ num_child + income + months_since_donate, kernel = "radial", data = train, cost = op)
+summary(svm.rad)
+
+svm.preds=predict(svm.rad, test)
+
+mean(svm.preds == test$target)
+```
+This correctly predicts 57.33% of the data.
+
+# Types of Analysis Performed
+Different types of classification models have been tried on the data and their accuracy have been checked. Logistic regression, LDA, QDA, KNN, SVM with linear kernel, and SVM with radial kernel have been performed. Out of all these, logistic regression, KNN, and SVM radial models are shown in the report.
+
+# Exclusion
+Predictors with high VIF are excluded from the models. Insignificant predictors or predictors that made no difference in accuracy are also excluded from the final models.
+
+# Model Performance
+Logistic regression performed the worst out of all the analysis with a prediction accuracy of 43.67%. However, this analysis indicated possible significant predictors which were later used in other models. KNN model had a prediction accuracy of 53.67% which is much better than the logistic regression model. SVM with a radial kernel gave the best prediction accuracy of 57.33%.
+
+# Best Model
+After performing all the classification analysis, the best classification model was the SVM model with a radial kernel. tune() function was used to perform cross-validation. The cost parameter that gave the lowest cross validation error rate was 0.343 which has been used as the cost parameter. This model correctly classified 57.33% of the test observations.
+
+# Testing
+```{r}
+future_value = predict(svm.rad, future_fundraising)
+```
+# CSV File
+```{r}
+write.table(future_value, file="Predictions.csv", col.names = c("value"),sep = ",", row.names = F, quote = F)
+```
+
