@@ -1,14 +1,9 @@
-### title: "Assignment 1"
-### author: "Sumaiya Shefa"
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ```{r}
 library(readr)
 ```
-
-## Q.8
 ```{r}
 college <- read.csv("College.csv")
 
@@ -43,7 +38,6 @@ boxplot(Outstate ~ Elite, col="lavenderblush3")
 ```
 After exploring this data I noticed that not everyone that gets accepted enrolls in the college. Out of 777 people only 78 are elites.So chances of getting into the college even if they are not an elite is high.
 
-## Q.9
 ```{r}
 Auto <- read.csv("Auto.csv", header=T,na.strings="?")
 Auto = na.omit(Auto)
@@ -83,8 +77,6 @@ sapply(Auto3, sd)
 ```{r}
 pairs(~., Auto2)
 ```
-## Q.10
-
 ```{r}
 library(MASS)
 fix(Boston)
