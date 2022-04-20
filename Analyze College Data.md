@@ -1,10 +1,5 @@
----
-title: "Assignment 1"
-author: "Sumaiya Shefa"
-output:
-  pdf_document: default
-  html_document: default
----
+### title: "Assignment 1"
+### author: "Sumaiya Shefa"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -46,9 +41,6 @@ summary(Elite)
 ```{r}
 boxplot(Outstate ~ Elite, col="lavenderblush3")
 ```
-```{r}
-```
-
 After exploring this data I noticed that not everyone that gets accepted enrolls in the college. Out of 777 people only 78 are elites.So chances of getting into the college even if they are not an elite is high.
 
 ## Q.9
@@ -91,9 +83,6 @@ sapply(Auto3, sd)
 ```{r}
 pairs(~., Auto2)
 ```
-```{r}
-```
-
 ## Q.10
 
 ```{r}
@@ -121,9 +110,6 @@ medv = median value of owner-occupied homes in \$1000s.
 attach(Boston)
 pairs(~., Boston)
 ```
-```{r}
-```
-
 The range of each quantitative  predictor is:
 ```{r}
 sapply(Boston, range)
